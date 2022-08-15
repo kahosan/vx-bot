@@ -76,7 +76,7 @@ setInterval(async () => {
 
   if (requestList.length) {
     for (let i = 0; i < MAX_LIMIT; i++) {
-      requestList?.shift().then(async ({ res, messageId }) => {
+      requestList.shift()?.then(async ({ res, messageId }) => {
         try {
           const data = await res;
           if (!data.ok) {
