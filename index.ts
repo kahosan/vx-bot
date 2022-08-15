@@ -1,21 +1,20 @@
 import fetch from 'node-fetch';
-import type { ChannelUpdatesResp } from './index.d';
+import type { MessageUpdatesResp } from './index.d';
 
 const TOKEN = 'YOUR_BOT_TOKEN';
-const UPDATE_LIMIT = 10; // 限制每次更新获取的消息数量
+const UPDATE_LIMIT = 50; // 限制每次更新获取的消息数量
+const REGEX = /((?<=\/)twitter)/; // 匹配 twitter 链接
 
 const url = {
   getUpdates: `https://api.telegram.org/bot${TOKEN}/getUpdates?`,
   editMessageText: `https://api.telegram.org/bot${TOKEN}/editMessageText?`,
 };
 
-let lastUpdateId: number; // 最后一条消息的 id，请求时 + 1 表示获取的更新已处理
-
-async function getChannelMessage(offset?: number): Promise<ChannelUpdatesResp[]> {
+async function getChannelMessage(offset?: number): Promise<MessageUpdatesResp> {
   const parmas = new URLSearchParams({
     offset: offset?.toString(),
     limit: UPDATE_LIMIT.toString(),
-    allowed_updates: "['channel_post']", // 限定只接收 channel_post 更新
+    allowed_updates: `["channel_post","message"]`, // 限定只接收 message 和 channel_post 更新
   });
 
   const res = await fetch(url.getUpdates + parmas, {
@@ -28,18 +27,18 @@ async function getChannelMessage(offset?: number): Promise<ChannelUpdatesResp[]>
 
   const data: any = await res.json();
 
-  return data.result;
+  return data;
 }
 
 /**
  *
- * @param chatId 消息来源的 chat id
  * @param messageId 消息 id
+ * @param chatId 消息来源的 chat id
  * @param text 消息内容
  * @param offset 延迟请求
  */
 
-function editChannelMessage(chatId: number, messageId: number, text: string, offset: number) {
+function editChannelMessage(messageId: number, chatId: number, text: string, offset: number) {
   const replaceText = text.replace(/twitter/, 'vxtwitter');
   const params = new URLSearchParams({
     chat_id: chatId.toString(),
@@ -61,29 +60,35 @@ function editChannelMessage(chatId: number, messageId: number, text: string, off
   }, 1000 * offset);
 }
 
+let lastUpdateId: number; // 最后一条消息的 id，请求时 + 1 表示获取的更新已处理
 setInterval(async () => {
   try {
-    const data = await getChannelMessage(lastUpdateId);
+    const data = (await getChannelMessage(lastUpdateId)).result;
     lastUpdateId = data[data.length - 1]?.update_id + 1;
 
-    const filterData = data.filter(
-      item =>
-        item.channel_post.text.includes('twitter') && !item.channel_post.text.includes('vxtwitter')
-    );
+    const filterData: { message_id: number; chat_id: number; text: string }[] = data
+      .filter(({ message, channel_post }) =>
+        /** 不能编辑群组中其它人的消息，以后要是预览全坏掉了就 reply 新链接吧
+        REGEX.test(message?.text) || **/ REGEX.test(channel_post?.text)
+      )
+      .map(({ message, channel_post }) => {
+        // 懒得改了
+        return {
+          message_id: message?.message_id ?? channel_post?.message_id,
+          chat_id: message?.chat.id ?? channel_post?.chat.id,
+          text: message?.text ?? channel_post?.text,
+        };
+      });
 
-    console.log(filterData.length ? `${filterData.length} messages need edit` : 'no messages');
+    const messageNumber = filterData.length;
+    console.log(messageNumber ? `${messageNumber} messages need edit` : 'no messages need edit');
 
-    if (filterData.length) {
+    if (messageNumber) {
       filterData.forEach((item, index) => {
-        editChannelMessage(
-          item.channel_post.chat.id,
-          item.channel_post.message_id,
-          item.channel_post.text,
-          index
-        );
+        editChannelMessage(item.message_id, item.chat_id, item.text, index);
       });
     }
   } catch (e) {
     console.log(e);
   }
-}, 1000 * 60); // 每分钟检查一次更新
+}, 1000 * 30); // 每半分钟检查一次更新
