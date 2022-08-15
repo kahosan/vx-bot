@@ -1,0 +1,26 @@
+{
+  "name": "vx-bot",
+  "version": "1.0.0",
+  "description": "将 TG 频道中的 Twitter 链接添加上 vx 前缀",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "build": "swc index.ts -d dist",
+    "start": "pm2 start dist/index.js --name vx-bot"
+  },
+  "keywords": [],
+  "author": "kaho",
+  "license": "MIT",
+  "devDependencies": {
+    "@swc/cli": "^0.1.57",
+    "@swc/core": "^1.2.231",
+    "eslint": "^8.22.0",
+    "eslint-config-kaho": "^1.0.0",
+    "prettier": "^2.7.1",
+    "regenerator-runtime": "^0.13.9",
+    "typescript": "^4.7.4"
+  },
+  "dependencies": {
+    "node-fetch": "^3.2.10"
+  }
+}
