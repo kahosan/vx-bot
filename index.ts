@@ -3,7 +3,7 @@ import type { ChannelUpdatesResp } from './index.d';
 
 const TOKEN = 'YOUR_BOT_TOKEN';
 const MAX_LIMIT = 2; // 限制每秒请求次数
-const UPDATE_LIMIT = 10;
+const UPDATE_LIMIT = 10; // 限制每次更新获取的消息数量
 
 const url = {
   getUpdates: `https://api.telegram.org/bot${TOKEN}/getUpdates?`,
