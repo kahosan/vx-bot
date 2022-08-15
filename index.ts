@@ -3,6 +3,7 @@ import type { ChannelUpdatesResp } from './index.d';
 
 const TOKEN = 'YOUR_BOT_TOKEN';
 const MAXLIMIT = 2; // 限制每秒请求次数
+const updateLimit = 10;
 
 const url = {
   getUpdates: `https://api.telegram.org/bot${TOKEN}/getUpdates?`,
@@ -14,6 +15,7 @@ let lastUpdateId: number; // 最后一条消息的 id，请求时 + 1 表示获�
 async function getChannelMessage(offset?: number): Promise<ChannelUpdatesResp[]> {
   const parmas = new URLSearchParams({
     offset: offset?.toString(),
+    limit: updateLimit.toString(),
     allowed_updates: "['channel_post']", // 限定只接收 channel_post 更新
   });
 
