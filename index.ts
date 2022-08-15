@@ -59,7 +59,7 @@ setInterval(async () => {
 
     console.log(filterData.length ? `${filterData.length} messages need edit` : 'no messages');
 
-    if (filterData.length > 0) {
+    if (filterData.length) {
       filterData.forEach(async item => {
         requestList.push(
           editChannelMessage(
