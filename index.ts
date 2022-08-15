@@ -2,7 +2,6 @@ import fetch from 'node-fetch';
 import type { ChannelUpdatesResp } from './index.d';
 
 const TOKEN = 'YOUR_BOT_TOKEN';
-const MAX_LIMIT = 2; // 限制每秒请求次数
 const UPDATE_LIMIT = 10; // 限制每次更新获取的消息数量
 
 const url = {
@@ -32,7 +31,15 @@ async function getChannelMessage(offset?: number): Promise<ChannelUpdatesResp[]>
   return data.result;
 }
 
-async function editChannelMessage(chatId: number, messageId: number, text: string) {
+/**
+ *
+ * @param chatId 消息来源的 chat id
+ * @param messageId 消息 id
+ * @param text 消息内容
+ * @param offset 延迟请求
+ */
+
+function editChannelMessage(chatId: number, messageId: number, text: string, offset: number) {
   const replaceText = text.replace(/twitter/, 'vxtwitter');
   const params = new URLSearchParams({
     chat_id: chatId.toString(),
@@ -40,12 +47,19 @@ async function editChannelMessage(chatId: number, messageId: number, text: strin
     text: replaceText,
   });
 
-  const res = fetch(url.editMessageText + params);
+  setTimeout(async () => {
+    try {
+      const res = await fetch(url.editMessageText + params);
+      if (!res.ok) {
+        throw new Error(`${res.status} ${res.statusText}`);
+      }
+    } catch (e) {
+      console.log(e);
+    }
 
-  return { res, messageId };
+    console.log(`message ${messageId} edit success`);
+  }, 1000 * offset);
 }
-
-const requestList: Promise<{ res: Promise<Response>; messageId: number }>[] = [];
 
 setInterval(async () => {
   try {
@@ -60,34 +74,16 @@ setInterval(async () => {
     console.log(filterData.length ? `${filterData.length} messages need edit` : 'no messages');
 
     if (filterData.length) {
-      filterData.forEach(async item => {
-        requestList.push(
-          editChannelMessage(
-            item.channel_post.chat.id,
-            item.channel_post.message_id,
-            item.channel_post.text
-          )
+      filterData.forEach((item, index) => {
+        editChannelMessage(
+          item.channel_post.chat.id,
+          item.channel_post.message_id,
+          item.channel_post.text,
+          index
         );
       });
     }
   } catch (e) {
     console.log(e);
   }
-
-  if (requestList.length) {
-    for (let i = 0; i < MAX_LIMIT; i++) {
-      requestList.shift()?.then(async ({ res, messageId }) => {
-        try {
-          const data = await res;
-          if (!data.ok) {
-            throw new Error(`${data.status} ${data.statusText}`);
-          }
-        } catch (e) {
-          console.log(e);
-        }
-
-        console.log(`message ${messageId} edit success`);
-      });
-    }
-  }
-}, 10000);
+}, 1000 * 60); // 每分钟检查一次更新
