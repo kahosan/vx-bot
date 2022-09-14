@@ -5,7 +5,7 @@ import type { MessageUpdatesResp } from './index.d';
 dotenv.config(); // 从 .env 文件引入 TOKEN
 const TOKEN = process.env.TOKEN || 'YOUR_BOT_TOKEN';
 const UPDATE_LIMIT = 50; // 限制每次更新获取的消息数量
-const REGEX = /((?<=\/)twitter)/; // 匹配 twitter 链接
+const REGEX = /((?<=https\:\/\/)twitter\.com\/[a-zA-Z0-9\_\-\.]+\/)/; // 匹配 twitter 链接
 
 const url = {
   getUpdates: `https://api.telegram.org/bot${TOKEN}/getUpdates?`,
