@@ -1,7 +1,9 @@
-import fetch from 'node-fetch';
+import * as dotenv from 'dotenv';
+import fetch, { type Response } from 'node-fetch';
 import type { MessageUpdatesResp } from './index.d';
 
-const TOKEN = 'YOUR_BOT_TOKEN';
+dotenv.config(); // 从 .env 文件引入 TOKEN
+const TOKEN = process.env.TOKEN || 'YOUR_BOT_TOKEN';
 const UPDATE_LIMIT = 50; // 限制每次更新获取的消息数量
 const REGEX = /((?<=\/)twitter)/; // 匹配 twitter 链接
 

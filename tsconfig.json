@@ -4,7 +4,6 @@
     "moduleResolution": "Node",
     "lib": [
       "ESNext",
-      "DOM"
     ],
   }
 }
