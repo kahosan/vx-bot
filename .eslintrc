@@ -1,3 +1,8 @@
 {
-  "extends": ["kaho/ts"]
+  "extends": ["kaho/ts"],
+  "root": true,
+  "ignorePatterns": ["node_modules/", "dist/"],
+  "parserOptions": {
+    "project": "./tsconfig.json"
+  }
 }

@@ -2,8 +2,11 @@
   "compilerOptions": {
     "module": "ESNext",
     "moduleResolution": "Node",
+    "strictNullChecks": true,
     "lib": [
       "ESNext",
     ],
-  }
+    "skipLibCheck": true
+  },
+  "include": ["index.ts", "index.d.ts"],
 }

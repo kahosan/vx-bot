@@ -5,7 +5,7 @@ import type { MessageUpdatesResp } from './index.d';
 dotenv.config(); // 从 .env 文件引入 TOKEN
 const TOKEN = process.env.TOKEN || 'YOUR_BOT_TOKEN';
 const UPDATE_LIMIT = 50; // 限制每次更新获取的消息数量
-const REGEX = /((?<=https\:\/\/)twitter\.com\/[a-zA-Z0-9\_\-\.]+\/)/; // 匹配 twitter 链接
+const REGEX = /https:\/\/twitter\.com\/[a-zA-Z0-9_\-.]+\//; // 匹配 twitter 链接
 
 const url = {
   getUpdates: `https://api.telegram.org/bot${TOKEN}/getUpdates?`,
@@ -14,14 +14,14 @@ const url = {
 };
 
 const queue: {
-  reqFn: () => Promise<Response>
+  reqFn: () => Promise<Response>,
   callback: (res: Response) => void
 }[] = [];
 let flag = true;
 function requestQueue(url: string, params: URLSearchParams, callback: (res: Response) => void) {
   queue.push({ reqFn: () => fetch(url + params), callback });
 
-  if (queue && flag) {
+  if (queue.length !== 0 && flag) {
     flag = false;
     handleQueue();
   }
@@ -31,7 +31,7 @@ function handleQueue() {
   const task = queue.shift();
 
   if (task) {
-    setTimeout(() => {
+    const _ = setTimeout(() => {
       task
         .reqFn()
         .then((res) => { task.callback(res); })
@@ -43,13 +43,13 @@ function handleQueue() {
   }
 }
 
-function replaceMessage(text: string) {
-  return text.replace(/twitter/, 'vxtwitter');
+function replaceMessage(text: string): string {
+  return text.replace(/twitter/, 'vxtwitter').split('?')[0];
 }
 
 async function getMessage(offset?: number): Promise<MessageUpdatesResp> {
   const parmas = new URLSearchParams({
-    offset: offset?.toString(),
+    offset: offset?.toString() ?? '',
     limit: UPDATE_LIMIT.toString(),
     allowed_updates: '["channel_post","message"]' // 限定只接收 message 和 channel_post 更新
   });
@@ -58,13 +58,10 @@ async function getMessage(offset?: number): Promise<MessageUpdatesResp> {
     method: 'GET'
   });
 
-  if (!res.ok) {
+  if (!res.ok)
     throw new Error(`${res.status} ${res.statusText}`);
-  }
 
-  const data: any = await res.json();
-
-  return data;
+  return (res.json()) as Promise<any>;
 }
 
 /**
@@ -83,10 +80,10 @@ function editChannelMessage(messageId: number, chatId: number, text: string) {
   });
 
   const callback = (res: Response) => {
-    if (!res.ok) {
+    if (!res.ok)
       throw new Error(`${res.status} ${res.statusText}`);
-    }
-    console.log(`message ${messageId} edit success`);
+
+    console.info(`message ${messageId} edit success`);
   };
 
   try {
@@ -105,10 +102,10 @@ function replyMessage(originalMessageId: number, chatId: number, text: string) {
   });
 
   const callback = (res: Response) => {
-    if (!res.ok) {
+    if (!res.ok)
       throw new Error(`${res.status} ${res.statusText}`);
-    }
-    console.log(`reply message to ${originalMessageId}`);
+
+    console.info(`reply message to ${originalMessageId}`);
   };
 
   try {
@@ -118,19 +115,20 @@ function replyMessage(originalMessageId: number, chatId: number, text: string) {
   }
 }
 
-let lastUpdateId: number; // 最后一条消息的 id，请求时 + 1 表示获取的更新已处理
-setInterval(async () => {
+let lastUpdateId: number | undefined; // 最后一条消息的 id，请求时 + 1 表示获取的更新已处理
+const _ = setInterval(async () => {
   try {
     const data = (await getMessage(lastUpdateId)).result;
-    lastUpdateId = data[data.length - 1]?.update_id + 1;
+    const updateId = data.at(-1)?.update_id;
+    lastUpdateId = updateId ? updateId + 1 : undefined;
 
     const filterData: {
-      type: 'message' | 'channel_post'
-      message_id: number
-      chat_id: number
-      text: string
+      type: 'message' | 'channel_post',
+      message_id: number | undefined,
+      chat_id: number | undefined,
+      text: string | undefined
     }[] = data
-      .filter(({ message, channel_post }) => REGEX.test(message?.text) || REGEX.test(channel_post?.text))
+      .filter(({ message, channel_post }) => REGEX.test(message?.text ?? '') || REGEX.test(channel_post?.text ?? ''))
       .map(({ message, channel_post }) => {
         return {
           type: message ? 'message' : 'channel_post',
@@ -141,15 +139,19 @@ setInterval(async () => {
       });
 
     const messageNumber = filterData.length;
-    console.log(messageNumber ? `${messageNumber} messages need edit` : 'no messages need edit');
+    console.info(messageNumber ? `${messageNumber} messages need edit` : 'no messages need edit');
 
     if (messageNumber) {
       filterData.forEach((item) => {
-        if (item.type === 'channel_post') {
-          editChannelMessage(item.message_id, item.chat_id, item.text);
-        } else {
-          replyMessage(item.message_id, item.chat_id, item.text);
+        if (!item.chat_id || !item.message_id || !item.text) {
+          console.error('message data error');
+          return;
         }
+
+        if (item.type === 'channel_post')
+          editChannelMessage(item.message_id, item.chat_id, item.text);
+        else
+          replyMessage(item.message_id, item.chat_id, item.text);
       });
     }
   } catch (e) {
