@@ -271,6 +271,5 @@ if (PIXIV_PUSH) {
     setTimeout(pushRankData, diff());
   };
 
-  pushRankData();
   setTimeout(pushRankData, diff());
 }
