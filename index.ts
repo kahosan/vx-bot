@@ -3,7 +3,7 @@ import type { Response } from 'node-fetch';
 import fetch from 'node-fetch';
 import type { MessageUpdatesResp, PixivDailyRanking } from './index.d';
 
-import { subDays, format, addDays, setHours } from 'date-fns';
+import { subDays, format, addDays } from 'date-fns';
 import { utcToZonedTime } from 'date-fns-tz';
 
 dotenv.config(); // 从 .env 文件引入 TOKEN
@@ -178,8 +178,7 @@ if (PIXIV_PUSH) {
   // 使用 date-fns 获取前一天的日期
   const prevDate = subDays(date, 1);
   // 获取偏移量
-  // const diff = () => addDays(date, 1).setHours(20) - date.getTime();
-  const diff = () => setHours(date, 20).getTime() - date.getTime();
+  const diff = () => addDays(date, 1).setHours(20) - date.getTime();
 
   const getPixivRankData = async () => {
     const officeApi = 'https://pixiv.net/ranking.php?mode=daily&content=illust&format=json';
