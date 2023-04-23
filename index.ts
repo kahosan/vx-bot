@@ -210,8 +210,8 @@ if (PIXIV_PUSH) {
       return;
     }
 
-    // 取前六
-    const illustsData = illusts.slice(0, 6);
+    // 取前十
+    const illustsData = illusts.slice(0, 10);
 
     // 首先发送日期;
     await fetch(url.sendMessage, {
