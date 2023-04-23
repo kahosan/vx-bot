@@ -190,10 +190,11 @@ if (PIXIV_PUSH) {
       rankData = await res.json() as PixivDailyRanking;
     } catch (e) {
       console.error('get pixiv rank data error');
+      return;
     }
 
-    if (!rankData || rankData.date !== format(prevDate, 'yyyyMMdd')) {
-      console.error(`rank date ${rankData?.date ?? ''} is not ${format(prevDate, 'yyyyMMdd')}`);
+    if (rankData.date !== format(prevDate, 'yyyyMMdd')) {
+      console.error(`rank date ${rankData.date} is not ${format(prevDate, 'yyyyMMdd')}`);
       return;
     }
 
