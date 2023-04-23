@@ -11,7 +11,7 @@ const TOKEN = process.env.TOKEN || 'YOUR_BOT_TOKEN';
 const UPDATE_LIMIT = 50; // 限制每次更新获取的消息数量
 const REGEX = /https:\/\/twitter\.com\/[a-zA-Z0-9_\-.]+\//; // 匹配 twitter 链接
 
-const PIXIV_PUSH = false;
+const PIXIV_PUSH = process.env.PIXIV === 'push'; // 是否推送 pixiv 每日排行榜
 
 const url = {
   getUpdates: `https://api.telegram.org/bot${TOKEN}/getUpdates?`,
@@ -221,23 +221,18 @@ if (PIXIV_PUSH) {
       },
       body: JSON.stringify({
         chat_id: chatId,
-        text: 'Pixiv 日榜更新\n#PixivDailyRanking'
+        text: `Pixiv ${format(prevDate, 'yyyy-MM-dd')} 日榜更新\n#PixivDailyRanking`
       })
     });
 
     const fetchList = illustsData.map(illust => {
       return async () => {
-        const { title, tags, illust_id, user_id, user_name } = illust;
+        const { title, tags, illust_id, user_id, user_name, url: imageUrl } = illust;
 
-        const pcRes = await fetch('https://api.pixiv.cat/v1/generate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
-          body: `p=${illust_id}`
-        });
+        const originalUrl = imageUrl
+          .replace('i.pximg.net', 'i.pixiv.cat')
+          .replace('/c/240x480', '');
 
-        const pcData = await pcRes.json() as any;
-
-        const originalUrl = pcData.original_url_proxy;
         const artworks = `https://www.pixiv.net/artworks/${illust_id}`;
         const users = `https://www.pixiv.net/users/${user_id}`;
 
@@ -253,8 +248,11 @@ if (PIXIV_PUSH) {
         });
 
         if (!res.ok) {
+          console.error('========= ERROR ========');
           console.error(`push pixiv rank data error, ${res.status} ${res.statusText}`);
+          console.error(await res.json());
           console.error(originalUrl);
+          console.error('========= END ========');
           return;
         }
 
@@ -267,10 +265,11 @@ if (PIXIV_PUSH) {
       await pushFn();
     }
 
-    console.info(`push pixiv rank data success ${date.toLocaleString()}`);
+    console.info(`push pixiv rank data success ${illustsData[0].date}`);
 
     setTimeout(pushRankData, diff());
   };
 
+  pushRankData();
   setTimeout(pushRankData, diff());
 }
