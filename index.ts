@@ -178,7 +178,7 @@ if (PIXIV_PUSH) {
   // 使用 date-fns 获取前一天的日期
   const prevDate = subDays(date, 1);
   // 获取偏移量
-  const diff = () => addDays(date, 1).setHours(20) - date.getTime();
+  const diff = () => addDays(date, 1).setHours(23) - date.getTime();
 
   const getPixivRankData = async () => {
     const officeApi = 'https://pixiv.net/ranking.php?mode=daily&content=illust&format=json';
