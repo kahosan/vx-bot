@@ -156,8 +156,9 @@ setInterval(async () => {
 
         if (item.type === 'channel_post')
           editChannelMessage(item.message_id, item.chat_id, item.text);
-        else
-          replyMessage(item.message_id, item.chat_id, item.text);
+        // else
+          // 暂时关掉群组回复
+          // replyMessage(item.message_id, item.chat_id, item.text);
       });
     }
   } catch (e) {
