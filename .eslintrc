@@ -4,5 +4,9 @@
   "ignorePatterns": ["node_modules/", "dist/"],
   "parserOptions": {
     "project": "./tsconfig.json"
+  },
+  "rules": {
+    "@fluffyfox/prefer-timer-id": "off",
+    "@fluffyfox/no-unsafe-date": "off"
   }
 }
