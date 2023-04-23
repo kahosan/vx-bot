@@ -10,7 +10,7 @@ const TOKEN = process.env.TOKEN || 'YOUR_BOT_TOKEN';
 const UPDATE_LIMIT = 50; // 限制每次更新获取的消息数量
 const REGEX = /https:\/\/twitter\.com\/[a-zA-Z0-9_\-.]+\//; // 匹配 twitter 链接
 
-const PIXIV_PUSH = true;
+const PIXIV_PUSH = false;
 
 const url = {
   getUpdates: `https://api.telegram.org/bot${TOKEN}/getUpdates?`,
