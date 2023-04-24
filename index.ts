@@ -172,13 +172,13 @@ if (PIXIV_PUSH) {
   if (!chatId)
     throw 'CHAT_ID is empty, please set CHAT_ID in .env file';
 
-  const utcDate = new Date();
-  const date = utcToZonedTime(utcDate, 'Asia/Shanghai');
+  const getDate = () => utcToZonedTime(new Date(), 'Asia/Shanghai');
 
   // 使用 date-fns 获取前一天的日期
-  const prevDate = subDays(date, 1);
+  const getPrevDate = () => subDays(getDate(), 1);
+
   // 获取偏移量
-  const diff = () => addDays(date, 1).setHours(23) - date.getTime();
+  const getOffest = () => addDays(getDate(), 1).setHours(23) - getDate().getTime();
 
   const getPixivRankData = async () => {
     const officeApi = 'https://pixiv.net/ranking.php?mode=daily&content=illust&format=json';
@@ -193,8 +193,8 @@ if (PIXIV_PUSH) {
       return;
     }
 
-    if (rankData.date !== format(prevDate, 'yyyyMMdd')) {
-      console.error(`rank date ${rankData.date} is not ${format(prevDate, 'yyyyMMdd')}`);
+    if (rankData.date !== format(getPrevDate(), 'yyyyMMdd')) {
+      console.error(`rank date ${rankData.date} is not ${format(getPrevDate(), 'yyyyMMdd')}`);
       return;
     }
 
@@ -202,6 +202,7 @@ if (PIXIV_PUSH) {
   };
 
   const pushRankData = async () => {
+
     const illusts = await getPixivRankData();
 
     if (!illusts) {
@@ -222,7 +223,7 @@ if (PIXIV_PUSH) {
       },
       body: JSON.stringify({
         chat_id: chatId,
-        text: `Pixiv ${format(prevDate, 'yyyy-MM-dd')} 日榜更新\n#PixivDailyRanking`
+        text: `Pixiv ${format(getPrevDate(), 'yyyy-MM-dd')} 日榜更新\n#PixivDailyRanking`
       })
     });
 
@@ -268,8 +269,8 @@ if (PIXIV_PUSH) {
 
     console.info(`push pixiv rank data success ${illustsData[0].date}`);
 
-    setTimeout(pushRankData, diff());
+    setTimeout(pushRankData, getOffest());
   };
 
-  setTimeout(pushRankData, diff());
+  setTimeout(pushRankData, getOffest());
 }
