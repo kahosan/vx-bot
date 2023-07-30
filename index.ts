@@ -232,7 +232,7 @@ if (PIXIV_PUSH) {
         const { title, tags, illust_id, user_id, user_name, url: imageUrl } = illust;
 
         const originalUrl = imageUrl
-          .replace('i.pximg.net', 'i.pixiv.cat')
+          // .replace('i.pximg.net', 'i.pixiv.re') 不应该 403 嘛？？？
           .replace('/c/240x480', '');
 
         const artworks = `https://www.pixiv.net/artworks/${illust_id}`;
