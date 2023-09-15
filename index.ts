@@ -9,7 +9,7 @@ import { utcToZonedTime } from 'date-fns-tz';
 dotenv.config(); // 从 .env 文件引入 TOKEN
 const TOKEN = process.env.TOKEN || 'YOUR_BOT_TOKEN';
 const UPDATE_LIMIT = 50; // 限制每次更新获取的消息数量
-const REGEX = /https:\/\/twitter\.com\/[a-zA-Z0-9_\-.]+\//; // 匹配 twitter 链接
+const REGEX = /https:\/\/(twitter|x)\.com\/[a-zA-Z0-9_\-.]+\//; // 匹配 twitter 链接
 
 const PIXIV_PUSH = process.env.PIXIV === 'push'; // 是否推送 pixiv 每日排行榜
 
@@ -51,7 +51,7 @@ function handleQueue() {
 }
 
 function replaceMessage(text: string): string {
-  return text.replace(/twitter/, 'vxtwitter').split('?')[0];
+  return text.replace(/(twitter|x)/, 'vxtwitter').split('?')[0];
 }
 
 async function getMessage(offset?: number): Promise<MessageUpdatesResp> {
