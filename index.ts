@@ -262,11 +262,7 @@ if (PIXIV_PUSH) {
       };
     });
 
-    for (const pushFn of fetchList) {
-      // eslint-disable-next-line no-await-in-loop -- 等待上一次请求完成
-      await pushFn();
-    }
-
+    await Promise.all(fetchList);
     console.info(`push pixiv rank data success ${illustsData[0].date}`);
 
     setTimeout(pushRankData, getOffest());
